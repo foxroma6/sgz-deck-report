@@ -21,6 +21,7 @@
   --f-display:"Noto Serif KR","Batang",serif; --f-body:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html{background:var(--bg)}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;
   background-image:radial-gradient(1200px 520px at 50% -120px,rgba(216,173,85,.10),transparent 70%)}
@@ -144,13 +145,43 @@ details.bt>summary .m{font-variant-numeric:tabular-nums;font-size:.82rem;color:v
 .more{font-size:.8rem;color:var(--muted);padding-top:10px}
 .empty{padding:16px 4px;color:var(--muted)}
 .memo{margin:0;padding-left:18px;color:var(--ink-2)} .memo li{margin-bottom:7px} .memo b{color:var(--gold-2)}
-@media (max-width:860px){ .hcards{grid-template-columns:repeat(2,minmax(0,1fr))} .kpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
+/* 덱 상성 */
+section.sec{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+section.sec>div{padding:0 18px 18px;min-width:0}
+.mu-h{font-family:var(--f-display);font-size:1.02rem;margin:0;padding:14px 18px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;color:var(--ink)}
+.mu-h small{font-family:var(--f-body);font-weight:400;font-size:.84rem;color:var(--muted)}
+.mu-sum{margin:0 0 10px;font-size:.84rem;color:var(--muted)} .mu-sum b{color:var(--gold-2);font-variant-numeric:tabular-nums}
+.pair{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;min-width:0}
+.vs-l{font-size:.72rem;color:var(--faint);font-weight:600}
+@media (max-width:860px){ .hcards{grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media (max-width:600px){
-  .hero h1{font-size:1.7rem}
+  body{font-size:14px}
+  .wrap{gap:16px}
+  header.hero{padding:22px 0 16px}
+  .hero h1{font-size:1.55rem}
+  .hero .sub{font-size:.8rem}
+  .hero .facts{gap:6px} .hero .facts span{font-size:.74rem;padding:2px 9px}
   .hcards{grid-template-columns:1fr}
-  .bar{position:static}
+  .bar{position:static;padding:12px;gap:10px}
+  .bar label{flex-basis:100%}
+  .bar select{width:100%;font-size:16px}
+  .tabs{flex-wrap:nowrap;overflow-x:auto;width:100%;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{flex:1 0 auto;padding:9px 12px}
+  details.sec>summary,.mu-h{padding:12px 12px}
+  details.sec>div,section.sec>div{padding:0 10px 12px}
+  .opt{display:none}
+  table{font-size:.8rem}
+  th{padding:8px 5px} td{padding:9px 5px}
+  .deck{white-space:normal;word-break:keep-all}
+  .tier{margin-left:0;padding:0 6px;white-space:nowrap;display:inline-block;margin-top:2px}
+  .deck+.tier{margin-left:4px}
+  td:first-child{min-width:118px}
+  .pair{flex-direction:column;align-items:flex-start;gap:1px}
+  .dist{min-width:52px}
+  .legend{font-size:.72rem;gap:4px 10px}
   .skgrid{grid-template-columns:1fr}
-  details.bt>summary{grid-template-columns:52px 60px minmax(0,1fr)} details.bt>summary .m{display:none}
+  details.bt>summary{grid-template-columns:44px 52px minmax(0,1fr);gap:8px} details.bt>summary .m{display:none}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -161,8 +192,8 @@ details.bt>summary .m{font-variant-numeric:tabular-nums;font-size:.82rem;color:v
   <header class="hero">
     <div class="eyebrow">삼국지 전략판 · 동맹전보 · 교전</div>
     <h1>창천 교전 <em>덱 분석</em></h1>
-    <div class="sub">2026-11-25 12:26 ~ 17:51 · 덱 = 장수 조합 + 진급 등급(진급합 10 이상 고진급)</div>
-    <div class="facts"><span>전투 <b>342</b></span><span>덱 기록 <b>684</b></span><span>덱 <b>82종</b></span><span>무승부 <b>60%</b></span><span>승패 결판 <b>136건</b></span></div>
+    <div class="sub">2026-11-25 12:26 ~ 21:38 · 덱 = 장수 조합 + 진급 등급(진급합 10 이상 고진급)</div>
+    <div class="facts"><span>전투 <b>385</b></span><span>덱 기록 <b>770</b></span><span>덱 <b>93종</b></span><span>무승부 <b>59%</b></span><span>승패 결판 <b>157건</b></span></div>
   </header>
 
 
@@ -173,33 +204,24 @@ details.bt>summary .m{font-variant-numeric:tabular-nums;font-size:.82rem;color:v
     <button type="button" class="reset" id="f-reset" hidden>덱 선택 해제</button>
     <div class="fstate" id="fstate"></div>
   </div>
-  <div id="kpis"></div>
-
   <div>
-  <div class="tabs" role="tablist">
+  <div class="tabs" role="tablist" id="tabs">
     <button role="tab" data-t="p-rank">덱 순위</button><button role="tab" data-t="p-mu">덱 상성</button>
-    <button role="tab" data-t="p-skill">전법</button><button role="tab" data-t="p-bt">전투 목록</button>
-    <button role="tab" data-t="p-memo">메모</button>
+    <button role="tab" data-t="p-bt">전투 목록</button><button role="tab" data-t="p-memo">메모</button>
   </div>
-  <div class="panel" id="p-rank" style="padding-top:14px">
+  <div class="panel" id="p-rank">
     <details class="sec" open><summary>덱별 성적</summary><div><div class="legend"><span><i class="f-win"></i>승</span><span><i class="f-adv"></i>우세무 · 무승부, 교환비 &gt; 1</span><span><i class="f-dis"></i>열세무 · 무승부, 교환비 ≤ 1</span><span><i class="f-loss"></i>패</span></div>
-      <p class="hint">열 제목을 누르면 정렬, 행을 누르면 그 덱으로 필터가 걸립니다.</p><div id="rank-table"></div></div></details>
-    <details class="sec" open id="deck-mu-sec" hidden><summary><span>선택한 덱의 상대 덱별 성적</span></summary><div><div class="legend"><span><i class="f-win"></i>승</span><span><i class="f-adv"></i>우세무 · 무승부, 교환비 &gt; 1</span><span><i class="f-dis"></i>열세무 · 무승부, 교환비 ≤ 1</span><span><i class="f-loss"></i>패</span></div>
-      <p class="hint">고른 덱이 각 상대 덱을 만났을 때의 성적입니다. 상대별 기록이 적어 최소 표본과 관계없이 모두 보여 줍니다. 행을 누르면 두 덱으로 좁혀 봅니다.</p><div id="deck-mu"></div></div></details>
+      <p class="hint">열 제목을 누르면 정렬, 덱을 누르면 그 덱의 상성으로 이동합니다.</p><div id="rank-table"></div></div></details>
   </div>
-  <div class="panel" id="p-mu" style="padding-top:14px" hidden>
-    <details class="sec" open><summary>덱 × 상대 덱</summary><div><div class="legend"><span><i class="f-win"></i>승</span><span><i class="f-adv"></i>우세무 · 무승부, 교환비 &gt; 1</span><span><i class="f-dis"></i>열세무 · 무승부, 교환비 ≤ 1</span><span><i class="f-loss"></i>패</span></div>
-      <p class="hint">같은 두 덱이 만난 기록을 묶었습니다. 행을 누르면 두 덱으로 필터가 걸립니다.</p><div id="mu-table"></div></div></details>
+  <div class="panel" id="p-mu" hidden>
+    <section class="sec mu"><h2 class="mu-h" id="mu-title">덱 상성</h2><div><div class="legend"><span><i class="f-win"></i>승</span><span><i class="f-adv"></i>우세무 · 무승부, 교환비 &gt; 1</span><span><i class="f-dis"></i>열세무 · 무승부, 교환비 ≤ 1</span><span><i class="f-loss"></i>패</span></div>
+      <p class="hint" id="mu-hint"></p><div id="mu-table"></div></div></section>
   </div>
-  <div class="panel" id="p-skill" style="padding-top:14px" hidden>
-    <details class="sec" open><summary>덱별 전법 성적</summary><div>
-      <p class="hint">일반 공격 제외. 처치는 상대 병력 감소, 구원은 아군 회복량, 발동당 효과는 (처치 + 구원) ÷ 발동입니다.</p><div id="skill-list"></div></div></details>
-  </div>
-  <div class="panel" id="p-bt" style="padding-top:14px" hidden>
+  <div class="panel" id="p-bt" hidden>
     <details class="sec" open><summary>전투 목록 · <span id="bt-n"></span>건</summary><div id="bt-list"></div></details>
   </div>
-  <div class="panel" id="p-memo" style="padding-top:14px" hidden>
-    <details class="sec" open><summary>수집·분석 방식</summary><div><ul class="memo"><li>대상: 동맹전보 › 교전 탭, 2026-11-25 12:26:28 ~ 2026-11-25 17:51:54 사이 기준을 통과한 전투 342건.</li><li><b>덱</b> = 주장 + 부장 2명(부장 순서 무관) + 진급 등급. 세 장수 진급합이 10 이상이면 고진급, 미만이면 저진급입니다. 진급은 카드 아래 돌 5개 중 빨간 돌 개수입니다(5가 최대).</li><li><b>기록</b>: 전투 하나는 양쪽 덱에 기록을 하나씩 남깁니다(결과와 손실이 서로 뒤집힌 값). 유저와 무관하게 덱끼리 비교하기 위해서입니다.</li><li><b>결과</b>: 승·패는 게임 판정 그대로이고, 무승부는 교환비가 1보다 크면 우세무, 아니면 열세무입니다. 우세율 = (승 + 우세무) ÷ 기록 수.</li><li><b>평균 교환비</b> = 상대 손실 합 ÷ 내 손실 합 (통계 화면의 손실 값). 전투별 비율을 단순 평균하면 손실이 작은 전투에서 크게 튀므로 손실 합으로 계산합니다.</li><li><b>전공</b>은 전보를 받은 동맹(창천) 쪽 기록에서만 확인되어 그 기록들의 평균입니다. 같은 진영 유저끼리의 교전은 전공 0입니다.</li><li>수집 기준: 15회 이상 이어진 연전 그룹 제외, 양쪽 시작 병력이 각각 15,000명 이상인 전투만.</li><li>검증: 전법 패널의 일반 공격 처치 = 통계의 일반 처치 (909/912 일치). 숫자와 전법은 Windows OCR, 장수 이름은 초상화 대조와 육안 확인.</li></ul></div></details>
+  <div class="panel" id="p-memo" hidden>
+    <details class="sec" open><summary>수집·분석 방식</summary><div><ul class="memo"><li>대상: 동맹전보 › 교전 탭, 2026-11-25 12:26:28 ~ 2026-11-25 21:38:53 사이 기준을 통과한 전투 385건.</li><li><b>덱</b> = 주장 + 부장 2명(부장 순서 무관) + 진급 등급. 세 장수 진급합이 10 이상이면 고진급, 미만이면 저진급입니다. 진급은 카드 아래 돌 5개 중 빨간 돌 개수입니다(5가 최대).</li><li><b>기록</b>: 전투 하나는 양쪽 덱에 기록을 하나씩 남깁니다(결과와 손실이 서로 뒤집힌 값). 유저와 무관하게 덱끼리 비교하기 위해서입니다.</li><li><b>결과</b>: 승·패는 게임 판정 그대로이고, 무승부는 교환비가 1보다 크면 우세무, 아니면 열세무입니다. 우세율 = (승 + 우세무) ÷ 기록 수.</li><li><b>평균 교환비</b> = 상대 손실 합 ÷ 내 손실 합 (통계 화면의 손실 값). 전투별 비율을 단순 평균하면 손실이 작은 전투에서 크게 튀므로 손실 합으로 계산합니다.</li><li><b>전공</b>은 전보를 받은 동맹(창천) 쪽 기록에서만 확인되어 그 기록들의 평균입니다. 같은 진영 유저끼리의 교전은 전공 0입니다.</li><li>수집 기준: 15회 이상 이어진 연전 그룹 제외, 양쪽 시작 병력이 각각 15,000명 이상인 전투만.</li><li>검증: 전법 패널의 일반 공격 처치 = 통계의 일반 처치 (909/912 일치). 숫자와 전법은 Windows OCR, 장수 이름은 초상화 대조와 육안 확인.</li></ul></div></details>
   </div>
   </div>
 </div>
@@ -222,7 +244,7 @@ function deckHTML(deck, tier, promos, gone) {
     const pr = p == null ? '' : `<span class="pr${p === 5 ? ' max' : ''}" title="${p}진급">${p}</span>`;
     if (gone && gone.includes(i)) return `<span class="gone" title="이전 회차에 전사해 빠짐">${esc(n)}</span>${pr}`;
     return esc(n) + pr;
-  }).join('·');
+  }).join('·<wbr>');
   return `<span class="deck">${names}</span>` + (tier ? tierHTML(tier) : '');
 }
 const keyHTML = k => { const i = k.lastIndexOf(' · '); return deckHTML(k.slice(0, i), k.slice(i + 3)); };
@@ -239,16 +261,17 @@ function groupBy(rows, key) { const m = new Map(); rows.forEach(r => { const k =
 const scoped = () => D.records.filter(r => st.scope === 'both' || r.side === 'ally');
 const filtered = () => scoped().filter(r => (!st.deck || r.key === st.deck) && (!st.opp || r.opp_key === st.opp));
 function table(head, rows, opt = {}) {
-  const num = opt.num || [], sort = opt.sort || [], cls = opt.cls || [];
+  const num = opt.num || [], sort = opt.sort || [], cls = opt.cls || [], hide = opt.hide || [];
+  const c0 = i => `${num.includes(i) ? 'num' : ''}${hide.includes(i) ? ' opt' : ''}`;
   const th = head.map((h, i) => { const sk = sort[i];
-    return `<th class="${num.includes(i) ? 'num' : ''}${sk ? ' sort' + (st.sortKey === sk ? ' sorted' : '') : ''}"` +
+    return `<th class="${c0(i)}${sk ? ' sort' + (st.sortKey === sk ? ' sorted' : '') : ''}"` +
       (sk ? ` data-sort="${sk}" tabindex="0" title="눌러서 정렬"` : '') + `>${h}${sk && st.sortKey === sk ? (st.sortDir < 0 ? ' ↓' : ' ↑') : ''}</th>`; }).join('');
   const body = rows.map((r, ri) => `<tr ${opt.rowAttr ? opt.rowAttr(ri) : ''}>` +
-    r.map((c, i) => `<td class="${num.includes(i) ? 'num' : ''} ${cls[i] || ''}">${c}</td>`).join('') + '</tr>').join('');
+    r.map((c, i) => `<td class="${c0(i)} ${cls[i] || ''}">${c}</td>`).join('') + '</tr>').join('');
   return `<div class="tbl"><table><thead><tr>${th}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 const sortStats = list => list.sort((a, b) => ((a[st.sortKey] ?? -1) - (b[st.sortKey] ?? -1)) * st.sortDir || b.n - a.n);
-const STAT_HEAD = ['기록', '결과', '승', '우세무', '열세무', '패', '승률', '우세율', '평균 교환비'];
+const STAT_HEAD = ['기록', '결과', '승', '우세무', '열세무', '패', '승률', '우세율', '교환비'];
 const STAT_SORT = ['n', null, null, null, null, null, 'win', 'adv', 'ratio'];
 const statCells = s => [String(s.n), distBar(s), String(s['승']), String(s['우세무']), String(s['열세무']), String(s['패']), pct(s.win), pct(s.adv), rt(s.ratio)];
 
@@ -272,77 +295,68 @@ function setFilter(p) {
 }
 
 /* ---------- 렌더 ---------- */
-function renderKPIs(rows) {
-  const battles = new Set(rows.map(r => r.b)).size;
-  let h;
-  if (!st.deck && !st.opp) {
-    const s = agg(D.records.filter(r => r.side === 'ally'));
-    const hl = agg(scoped().filter(r => r.tier === '고진급' && r.opp_tier === '저진급'));
-    h = `<div class="kpi"><div class="l">전투</div><div class="v">${n0(battles)}</div><div class="s">덱 기록 ${n0(rows.length)}개 · 덱 ${new Set(rows.map(r => r.key)).size}종</div></div>` +
-      `<div class="kpi"><div class="l">무승부 비율</div><div class="v">${pct((s['우세무'] + s['열세무']) / s.n)}</div><div class="s">승패가 갈린 전투 ${s['승'] + s['패']}건</div></div>` +
-      `<div class="kpi"><div class="l">고진급 → 저진급 우세율</div><div class="v">${pct(hl.adv)}</div><div class="s">${hl.n}전 · 교환비 ${rt(hl.ratio)}</div></div>` +
-      `<div class="kpi"><div class="l">전투당 전공</div><div class="v">${n0(Math.round(s.mpb || 0))}</div><div class="s">전공을 알 수 있는 기록 ${s.mn}개 기준</div></div>`;
-  } else {
-    const s = agg(rows);
-    h = `<div class="kpi"><div class="l">기록</div><div class="v">${n0(s.n)}</div><div class="s">${s['승']}승 ${s['우세무']}우세무 ${s['열세무']}열세무 ${s['패']}패</div></div>` +
-      `<div class="kpi"><div class="l">승률</div><div class="v">${pct(s.win)}</div><div class="s">우세율 ${pct(s.adv)}</div></div>` +
-      `<div class="kpi"><div class="l">평균 교환비</div><div class="v">${rt(s.ratio)}</div><div class="s">상대 손실 ${n0(s.ol)} ÷ 내 손실 ${n0(s.ml)}</div></div>` +
-      `<div class="kpi"><div class="l">전투당 전공</div><div class="v">${s.mn ? n0(Math.round(s.mpb)) : '–'}</div><div class="s">창천 쪽 기록 ${s.mn}개 기준</div></div>`;
-  }
-  $('kpis').innerHTML = h;
+function renderState(rows) {
   const parts = [];
   if (st.deck) parts.push(keyHTML(st.deck));
   if (st.opp) parts.push('상대 ' + keyHTML(st.opp));
   $('fstate').innerHTML = parts.length ? parts.join(' <span class="muted">vs</span> ') :
-    '전투 하나가 양쪽 두 덱에 기록을 하나씩 남깁니다. 표의 행을 누르면 그 덱으로 필터가 걸립니다.';
+    '전투 하나가 양쪽 두 덱에 기록을 하나씩 남깁니다. 덱을 누르면 그 덱의 상성으로 이동합니다.';
 }
 function renderRank(rows) {
   const decks = sortStats([...groupBy(rows, r => r.key).entries()].map(([k, v]) => ({k, ...agg(v)})).filter(d => d.n >= st.minN));
   $('rank-table').innerHTML = decks.length ? table(['덱', ...STAT_HEAD, '전투당 전공'],
     decks.map(d => [keyHTML(d.k), ...statCells(d), d.mn ? n0(Math.round(d.mpb)) : '–']),
-    {num: [1, 3, 4, 5, 6, 7, 8, 9, 10], sort: [null, ...STAT_SORT, 'mpb'], cls: {3: 'c-win', 6: 'c-loss'},
-     rowAttr: i => `class="pick${st.deck === decks[i].k ? ' on' : ''}" tabindex="0" data-deck="${esc(decks[i].k)}"`})
+    {num: [1, 3, 4, 5, 6, 7, 8, 9, 10], sort: [null, ...STAT_SORT, 'mpb'], cls: {3: 'c-win', 6: 'c-loss'}, hide: [2, 3, 4, 5, 6, 10],
+     rowAttr: i => `class="pick${st.deck === decks[i].k ? ' on' : ''}" tabindex="0" data-deck="${esc(decks[i].k)}" data-go="p-mu"`})
     : `<div class="empty">기록 ${st.minN}개 이상인 덱이 없습니다. 최소 표본을 낮춰 보세요.</div>`;
 }
-function renderDeckMatchups(rows) {
-  const sec = $('deck-mu-sec');
-  if (!st.deck) { sec.hidden = true; return; }
-  sec.hidden = false;
-  sec.querySelector('summary span').innerHTML = keyHTML(st.deck) + ' <span class="muted" style="font-family:var(--f-body);font-weight:400;font-size:.85rem">의 상대 덱별 성적</span>';
-  const opps = sortStats([...groupBy(scoped().filter(r => r.key === st.deck), r => r.opp_key).entries()]
-    .map(([k, v]) => ({k, decoy: v[0].decoy, ...agg(v)})));
-  $('deck-mu').innerHTML = opps.length ? table(['상대 덱', ...STAT_HEAD],
-    opps.map(x => [keyHTML(x.k) + (x.decoy ? ' <span class="muted">미끼</span>' : ''), ...statCells(x)]),
-    {num: [1, 3, 4, 5, 6, 7, 8, 9], sort: [null, ...STAT_SORT], cls: {3: 'c-win', 6: 'c-loss'},
-     rowAttr: i => `class="pick" tabindex="0" data-deck="${esc(st.deck)}" data-opp="${esc(opps[i].k)}"`})
-    : '<div class="empty">조건에 맞는 상대 기록이 없습니다. 최소 표본을 1로 낮춰 보세요.</div>';
-}
-function renderMatchups(rows) {
-  const mus = sortStats([...groupBy(rows, r => r.key + '|' + r.opp_key).values()]
-    .map(v => ({a: v[0].key, e: v[0].opp_key, decoy: v[0].decoy, ...agg(v)})).filter(x => x.n >= st.minN));
-  $('mu-table').innerHTML = mus.length ? table(['덱', '상대 덱', ...STAT_HEAD],
-    mus.map(x => [keyHTML(x.a), keyHTML(x.e) + (x.decoy ? ' <span class="muted">미끼</span>' : ''), ...statCells(x)]),
-    {num: [2, 4, 5, 6, 7, 8, 9, 10], sort: [null, null, ...STAT_SORT], cls: {4: 'c-win', 7: 'c-loss'},
-     rowAttr: i => `class="pick" tabindex="0" data-deck="${esc(mus[i].a)}" data-opp="${esc(mus[i].e)}"`})
-    : `<div class="empty">기록 ${st.minN}개 이상인 상성이 없습니다. 최소 표본을 낮추거나 덱을 골라 보세요.</div>`;
-}
-function renderSkills(rows) {
-  const decks = [...groupBy(rows, r => r.key).entries()].filter(([, v]) => v.length >= st.minN)
-    .sort((a, b) => b[1].length - a[1].length).slice(0, st.deck ? 1 : 8);
-  $('skill-list').innerHTML = decks.length ? decks.map(([k, v]) => {
-    const sk = new Map();
-    v.forEach(r => D.battles[r.b].gens.filter(g => g.side === r.side && !g.empty).forEach(g => g.skills.forEach(x => {
-      if (x.n === '일반 공격') return;
-      const o = sk.get(x.n) || {n: x.n, owner: g.name, b: 0, u: 0, k: 0, r: 0};
-      o.b++; o.u += x.u; o.k += x.k; o.r += x.r; sk.set(x.n, o);
-    })));
-    const list = [...sk.values()].sort((a, b) => (b.k + b.r) - (a.k + a.r));
-    return `<div class="sk-deck"><h3>${keyHTML(k)} <span class="muted" style="font-weight:400;font-size:.82rem">${v.length}전</span></h3>` +
-      table(['전법', '장수', '발동', '처치', '구원', '발동당 효과'],
-        list.map(o => [esc(o.n), `<span class="muted">${esc(o.owner)}</span>`, n0(o.u), n0(o.k), n0(o.r), o.u ? n0(Math.round((o.k + o.r) / o.u)) : '–']),
-        {num: [2, 3, 4, 5]}) + '</div>';
-  }).join('') + (st.deck ? '' : '<p class="more">기록이 많은 덱 8개까지 보여 줍니다. 위에서 덱을 고르면 그 덱만 봅니다.</p>')
-    : `<div class="empty">기록 ${st.minN}개 이상인 덱이 없습니다.</div>`;
+const MU_OPT = {num: [1, 3, 4, 5, 6, 7, 8, 9], sort: [null, ...STAT_SORT], cls: {3: 'c-win', 6: 'c-loss'}, hide: [2, 3, 4, 5, 6]};
+const muNote = s => `<p class="mu-sum">${s.n}전 · ${s['승']}승 ${s['우세무']}우세무 ${s['열세무']}열세무 ${s['패']}패 · ` +
+  `승률 <b>${pct(s.win)}</b> · 우세율 <b>${pct(s.adv)}</b> · 교환비 <b>${rt(s.ratio)}</b></p>`;
+function renderMu() {
+  const base = scoped(), title = $('mu-title'), hint = $('mu-hint'), box = $('mu-table');
+  const decoy = x => x.decoy ? ' <span class="muted">미끼</span>' : '';
+  if (st.deck) {
+    /* 고른 덱 기준: 상대 덱별 성적 (표본 수와 관계없이 전부) */
+    const recs = base.filter(r => r.key === st.deck);
+    const opps = sortStats([...groupBy(recs, r => r.opp_key).entries()].map(([k, v]) => ({k, decoy: v[0].decoy, ...agg(v)})));
+    title.innerHTML = keyHTML(st.deck) + ' <small>상대 덱별 성적</small>';
+    hint.textContent = '상대별 기록이 적어 최소 표본과 관계없이 모두 보여 줍니다. 상대 덱을 누르면 그 두 덱의 전투 목록으로 이동합니다.';
+    box.innerHTML = muNote(agg(recs)) + (opps.length ? table(['상대 덱', ...STAT_HEAD],
+      opps.map(x => [keyHTML(x.k) + decoy(x), ...statCells(x)]),
+      {...MU_OPT, rowAttr: i => `class="pick${st.opp === opps[i].k ? ' on' : ''}" tabindex="0" data-deck="${esc(st.deck)}" data-opp="${esc(opps[i].k)}" data-go="p-bt"`})
+      : '<div class="empty">이 덱의 기록이 없습니다.</div>');
+    return;
+  }
+  if (st.opp) {
+    /* 상대 덱만 고름: 그 상대를 만난 덱들의 성적 */
+    const recs = base.filter(r => r.opp_key === st.opp);
+    const decks = sortStats([...groupBy(recs, r => r.key).entries()].map(([k, v]) => ({k, ...agg(v)})));
+    title.innerHTML = keyHTML(st.opp) + ' <small>을 상대한 덱들의 성적</small>';
+    hint.textContent = '덱을 누르면 그 두 덱의 전투 목록으로 이동합니다.';
+    box.innerHTML = muNote(agg(recs)) + (decks.length ? table(['덱', ...STAT_HEAD], decks.map(x => [keyHTML(x.k), ...statCells(x)]),
+      {...MU_OPT, rowAttr: i => `class="pick" tabindex="0" data-deck="${esc(decks[i].k)}" data-opp="${esc(st.opp)}" data-go="p-bt"`})
+      : '<div class="empty">기록이 없습니다.</div>');
+    return;
+  }
+  /* 덱을 안 고름: 두 덱 조합마다 한 줄 (A vs B 와 B vs A 를 합쳐 기록이 많은 덱 쪽에서 본 성적) */
+  const pop = new Map(); base.forEach(r => pop.set(r.key, (pop.get(r.key) || 0) + 1));
+  const pairs = new Map();
+  base.forEach(r => {
+    const [a, b] = [r.key, r.opp_key];
+    const lead = a === b ? a : ((pop.get(a) || 0) > (pop.get(b) || 0) || ((pop.get(a) || 0) === (pop.get(b) || 0) && a < b)) ? a : b;
+    if (r.key !== lead || (a === b && r.side !== 'ally')) return;   // 한 전투는 한 번만
+    const k = a + '|' + b;
+    if (!pairs.has(k)) pairs.set(k, []);
+    pairs.get(k).push(r);
+  });
+  const mus = sortStats([...pairs.values()].map(v => ({a: v[0].key, e: v[0].opp_key, decoy: v[0].decoy, ...agg(v)})).filter(x => x.n >= st.minN));
+  title.innerHTML = '덱 상성 <small>두 덱 조합별</small>';
+  hint.textContent = `같은 두 덱이 만난 전투를 한 줄로 묶었습니다(기록 ${st.minN}개 이상). 성적은 왼쪽 덱 기준입니다. 행을 누르면 왼쪽 덱의 모든 상대를 봅니다.`;
+  box.innerHTML = mus.length ? table(['덱 vs 상대 덱', ...STAT_HEAD],
+    mus.map(x => [`<div class="pair">${keyHTML(x.a)}<span class="vs-l">vs</span>${keyHTML(x.e)}${decoy(x)}</div>`, ...statCells(x)]),
+    {...MU_OPT, rowAttr: i => `class="pick" tabindex="0" data-deck="${esc(mus[i].a)}" data-go="p-mu"`})
+    : `<div class="empty">기록 ${st.minN}개 이상인 조합이 없습니다. 최소 표본을 낮추거나 덱을 골라 보세요.</div>`;
 }
 function battleDetail(r) {
   const b = D.battles[r.b], me = r.side, op = me === 'ally' ? 'enemy' : 'ally';
@@ -356,7 +370,8 @@ function battleDetail(r) {
     g.skills.map(k => `<tr><td>${esc(k.n)}</td><td class="num">${k.u}</td><td class="num">${n0(k.k)}</td><td class="num">${n0(k.r)}</td></tr>`).join('') + '</tbody></table></div>').join('');
   const mt = me === 'ally' ? [b.at, b.ar] : [b.et, b.er], ot = me === 'ally' ? [b.et, b.er] : [b.at, b.ar];
   return `<div class="bd"><div class="bd-meta">${esc(b.dt.slice(0, 16))} · 위치 (${esc(b.coord)}) · 병력 이 덱 ${n0(mt[1])}/${n0(mt[0])}, 상대 ${n0(ot[1])}/${n0(ot[0])}</div>` +
-    table(['', '장수', '진급', '병종', '시작 병력', '손실', '일반 처치', '전법 처치', '구원'], rows, {num: [2, 4, 5, 6, 7, 8]}) + `<div class="skgrid">${cards}</div></div>`;
+    table(['', '장수', '진급', '병종', '시작 병력', '손실', '일반 처치', '전법 처치', '구원'], rows, {num: [2, 4, 5, 6, 7, 8], hide: [3, 6, 7, 8]}) +
+    (order.some(g => !g.empty && g.skills.length) ? `<div class="skgrid">${cards}</div>` : '') + '</div>';
 }
 function renderBattles(rows) {
   const list = (st.deck || st.opp) ? rows : rows.filter(r => r.side === 'ally');
@@ -370,7 +385,12 @@ function renderBattles(rows) {
       (uniq.length > LIMIT ? `<p class="more">최근 ${LIMIT}건만 보여 줍니다. 덱을 골라 범위를 좁혀 보세요.</p>` : '')
     : '<div class="empty">조건에 맞는 전투가 없습니다.</div>';
 }
-function render() { const rows = filtered(); renderRank(rows); renderDeckMatchups(rows); renderMatchups(rows); renderSkills(rows); renderBattles(rows); }
+function render() { const rows = filtered(); renderState(rows); renderRank(rows); renderMu(); renderBattles(rows); }
+const TABS = () => [...document.querySelectorAll('.tabs button')];
+function showTab(id) {
+  TABS().forEach(b => { const on = b.dataset.t === id; b.setAttribute('aria-selected', on); $(b.dataset.t).hidden = !on; });
+  try { localStorage.setItem('sgz-tab5', id); } catch (e) {}
+}
 
 /* ---------- 이벤트 ---------- */
 function init() {
@@ -384,25 +404,22 @@ function init() {
     const th = e.target.closest('th.sort');
     if (th) { const k = th.dataset.sort; setFilter(st.sortKey === k ? {sortDir: -st.sortDir} : {sortKey: k, sortDir: -1}); return; }
     const t = e.target.closest('tr.pick'); if (!t) return;
-    if (t.dataset.opp !== undefined) setFilter({deck: t.dataset.deck, opp: t.dataset.opp});
-    else setFilter({deck: st.deck === t.dataset.deck ? '' : t.dataset.deck});
+    setFilter({deck: t.dataset.deck || '', opp: t.dataset.opp || ''});
+    if (t.dataset.go) { showTab(t.dataset.go); $('tabs').scrollIntoView({block: 'start', behavior: 'smooth'}); }
   });
   document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('tr.pick, th.sort')) e.target.click(); });
-  const tabs = [...document.querySelectorAll('.tabs button')];
-  const showTab = id => { tabs.forEach(b => { const on = b.dataset.t === id; b.setAttribute('aria-selected', on); $(b.dataset.t).hidden = !on; });
-    try { localStorage.setItem('sgz-tab4', id); } catch (e) {} };
-  tabs.forEach(b => b.addEventListener('click', () => showTab(b.dataset.t)));
+  TABS().forEach(b => b.addEventListener('click', () => showTab(b.dataset.t)));
   try { const f = JSON.parse(localStorage.getItem('sgz-deck-filter') || '{}');
     if ([1, 3, 5, 10].includes(f.minN)) st.minN = f.minN;
     if (['n', 'win', 'adv', 'ratio', 'mpb'].includes(f.sortKey)) { st.sortKey = f.sortKey; st.sortDir = f.sortDir === 1 ? 1 : -1; }
     if (D.records.some(r => r.key === f.deck)) st.deck = f.deck;
     if (D.records.some(r => r.key === f.opp)) st.opp = f.opp; } catch (e) {}
-  let t0 = 'p-rank'; try { t0 = localStorage.getItem('sgz-tab4') || t0; } catch (e) {}
+  let t0 = 'p-rank'; try { t0 = localStorage.getItem('sgz-tab5') || t0; } catch (e) {}
   showTab($(t0) ? t0 : 'p-rank');
   setFilter({scope: st.scope});
 }
 fetch('battle_data.json').then(r => r.json()).then(d => { D = d; init(); })
-  .catch(() => { $('kpis').innerHTML = '<div class="empty">데이터 파일(battle_data.json)을 불러오지 못했습니다.</div>'; });
+  .catch(() => { $('rank-table').innerHTML ='<div class="empty">데이터 파일(battle_data.json)을 불러오지 못했습니다.</div>'; });
 </script>
 
 </body>
