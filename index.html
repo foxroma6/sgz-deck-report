@@ -176,7 +176,9 @@ section.sec>div{padding:0 18px 18px;min-width:0}
   .deck{white-space:normal;word-break:keep-all}
   .tier{margin-left:0;padding:0 6px;white-space:nowrap;display:inline-block;margin-top:2px}
   .deck+.tier{margin-left:4px}
-  td:first-child{min-width:118px}
+  #rank-table td:first-child,#mu-table td:first-child{min-width:118px}
+  .gn{display:flex;flex-wrap:wrap;gap:0 5px;align-items:baseline;word-break:keep-all}
+  .bd{padding:4px 0 14px}
   .pair{flex-direction:column;align-items:flex-start;gap:1px}
   .dist{min-width:52px}
   .legend{font-size:.72rem;gap:4px 10px}
@@ -218,7 +220,7 @@ section.sec>div{padding:0 18px 18px;min-width:0}
       <p class="hint" id="mu-hint"></p><div id="mu-table"></div></div></section>
   </div>
   <div class="panel" id="p-bt" hidden>
-    <details class="sec" open><summary>전투 목록 · <span id="bt-n"></span>건</summary><div id="bt-list"></div></details>
+    <details class="sec" open><summary><span>전투 목록 · <span id="bt-n"></span>건</span></summary><div id="bt-list"></div></details>
   </div>
   <div class="panel" id="p-memo" hidden>
     <details class="sec" open><summary>수집·분석 방식</summary><div><ul class="memo"><li>대상: 동맹전보 › 교전 탭, 2026-11-25 12:26:28 ~ 2026-11-25 21:38:53 사이 기준을 통과한 전투 385건.</li><li><b>덱</b> = 주장 + 부장 2명(부장 순서 무관) + 진급 등급. 세 장수 진급합이 10 이상이면 고진급, 미만이면 저진급입니다. 진급은 카드 아래 돌 5개 중 빨간 돌 개수입니다(5가 최대).</li><li><b>기록</b>: 전투 하나는 양쪽 덱에 기록을 하나씩 남깁니다(결과와 손실이 서로 뒤집힌 값). 유저와 무관하게 덱끼리 비교하기 위해서입니다.</li><li><b>결과</b>: 승·패는 게임 판정 그대로이고, 무승부는 교환비가 1보다 크면 우세무, 아니면 열세무입니다. 우세율 = (승 + 우세무) ÷ 기록 수.</li><li><b>평균 교환비</b> = 상대 손실 합 ÷ 내 손실 합 (통계 화면의 손실 값). 전투별 비율을 단순 평균하면 손실이 작은 전투에서 크게 튀므로 손실 합으로 계산합니다.</li><li><b>전공</b>은 전보를 받은 동맹(창천) 쪽 기록에서만 확인되어 그 기록들의 평균입니다. 같은 진영 유저끼리의 교전은 전공 0입니다.</li><li>수집 기준: 15회 이상 이어진 연전 그룹 제외, 양쪽 시작 병력이 각각 15,000명 이상인 전투만.</li><li>검증: 전법 패널의 일반 공격 처치 = 통계의 일반 처치 (909/912 일치). 숫자와 전법은 Windows OCR, 장수 이름은 초상화 대조와 육안 확인.</li></ul></div></details>
@@ -362,15 +364,19 @@ function battleDetail(r) {
   const b = D.battles[r.b], me = r.side, op = me === 'ally' ? 'enemy' : 'ally';
   const lab = s => s === me ? '<span class="side me">이 덱</span>' : '<span class="side op">상대</span>';
   const order = [...b.gens.filter(g => g.side === me), ...b.gens.filter(g => g.side === op)];
-  const rows = order.map(g => g.empty ? [lab(g.side), '<span class="muted">빈 칸</span>', '', '', '', '', '', '', '']
-    : [lab(g.side), `<b>${esc(g.name)}</b> <span class="muted">${esc(g.role)}</span>`, g.promo == null ? '?' : g.promo, esc(g.type),
-       n0(g.start), n0(g.loss), n0(g.nk), n0(g.sk), n0(g.rescue)]);
+  const full = order.some(g => !g.empty && g.nk != null);   // 통계 화면까지 수집한 전투
+  const who = g => `<span class="gn">${lab(g.side)} ${g.empty ? '<span class="muted">빈 칸</span>' : `<b>${esc(g.name)}</b> <span class="muted">${esc(g.role)}</span>`}</span>`;
+  const rows = order.map(g => (g.empty ? [who(g), '', '', '', '', '', '', '', '']
+    : [who(g), g.promo == null ? '?' : g.promo, esc(g.type),
+       n0(g.start), n0(g.rem), n0(g.loss), n0(g.nk), n0(g.sk), n0(g.rescue)]).slice(0, full ? 9 : 6));
+  const head = ['장수', '진급', '병종', '시작', '남은 병력', '손실', '일반 처치', '전법 처치', '구원'].slice(0, full ? 9 : 6);
   const cards = order.filter(g => !g.empty).map(g => `<div class="skc ${g.side === me ? 'me' : 'op'}"><div class="skc-h">${esc(g.name)}</div>` +
     `<table><thead><tr><th>전법</th><th class="num">발동</th><th class="num">처치</th><th class="num">구원</th></tr></thead><tbody>` +
     g.skills.map(k => `<tr><td>${esc(k.n)}</td><td class="num">${k.u}</td><td class="num">${n0(k.k)}</td><td class="num">${n0(k.r)}</td></tr>`).join('') + '</tbody></table></div>').join('');
   const mt = me === 'ally' ? [b.at, b.ar] : [b.et, b.er], ot = me === 'ally' ? [b.et, b.er] : [b.at, b.ar];
   return `<div class="bd"><div class="bd-meta">${esc(b.dt.slice(0, 16))} · 위치 (${esc(b.coord)}) · 병력 이 덱 ${n0(mt[1])}/${n0(mt[0])}, 상대 ${n0(ot[1])}/${n0(ot[0])}</div>` +
-    table(['', '장수', '진급', '병종', '시작 병력', '손실', '일반 처치', '전법 처치', '구원'], rows, {num: [2, 4, 5, 6, 7, 8], hide: [3, 6, 7, 8]}) +
+    table(head, rows, {num: [1, 3, 4, 5, 6, 7, 8], hide: [2, 6, 7, 8]}) +
+    (full ? '' : '<p class="more">빠른 수집으로 모은 전투라 처치·구원 통계는 없습니다. 손실은 시작 병력 − 남은 병력이며, 진영 합계와 맞지 않으면 –로 둡니다.</p>') +
     (order.some(g => !g.empty && g.skills.length) ? `<div class="skgrid">${cards}</div>` : '') + '</div>';
 }
 function renderBattles(rows) {
